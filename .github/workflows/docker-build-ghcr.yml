@@ -1,0 +1,31 @@
+name: Build Docker Image to GHCR
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/mars8125/kids-video-app/kids-video-app
+            ghcr.io/mars8125/kids-video-app/kids-video-app:${{ github.sha }}
+          build-args: |
+            NPM_REGISTRY=https://registry.npmmirror.com
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
