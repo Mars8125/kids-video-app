@@ -164,10 +164,10 @@ fastify.get('/', async (request, reply) => {
       display: none;
     }
     .player.active { display: block; }
-    .player video {
+    .player iframe {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      border: none;
     }
     .player .close {
       position: absolute;
@@ -268,7 +268,7 @@ fastify.get('/', async (request, reply) => {
   <!-- 全屏播放器 -->
   <div class="player" id="player">
     <div class="close" onclick="closePlayer()">✕</div>
-    <video id="videoPlayer" controls playsinline></video>
+    <iframe id="playerFrame" allow="autoplay; fullscreen" allowfullscreen></iframe>
     <div class="info" id="playerInfo"></div>
   </div>
   
@@ -326,22 +326,42 @@ fastify.get('/', async (request, reply) => {
     // 播放视频
     function openPlayer(url, title, platform, category) {
       const player = document.getElementById('player');
-      const video = document.getElementById('videoPlayer');
+      const frame = document.getElementById('playerFrame');
       const info = document.getElementById('playerInfo');
       
-      video.src = url;
-      video.play();
+      let embedUrl = url;
+      let openUrl = url;
+
+      if (platform === 'bilibili') {
+        // 从 URL 提取 BVID
+        const bvMatch = url.match(/[?&]bvid=([^&]+)/i) || url.match(/\/video\/(BV[\w]+)/i);
+        const bvid = bvMatch ? bvMatch[1] : '';
+        embedUrl = 'https://player.bilibili.com/player.html?bvid=' + bvid + '&autoplay=1&high_quality=1';
+        openUrl = 'https://www.bilibili.com/video/' + bvid;
+      } else if (platform === 'douyin') {
+        embedUrl = 'about:blank'; // douyin 不支持 iframe，强开新窗口
+        openUrl = url;
+      }
+
+      if (embedUrl === 'about:blank') {
+        // 关闭全屏播放器，直接打开新标签
+        player.classList.remove('active');
+        window.open(openUrl, '_blank');
+        return;
+      }
+
+      frame.src = embedUrl;
       info.innerHTML = \`
         <h2>\${title}</h2>
         <p>\${platform} · \${category}</p>
+        <a href="\${openUrl}" target="_blank" class="open-link">↗ 在原站打开</a>
       \`;
       player.classList.add('active');
     }
     
     function closePlayer() {
-      const video = document.getElementById('videoPlayer');
-      video.pause();
-      video.src = '';
+      const frame = document.getElementById('playerFrame');
+      frame.src = 'about:blank';
       document.getElementById('player').classList.remove('active');
     }
     
