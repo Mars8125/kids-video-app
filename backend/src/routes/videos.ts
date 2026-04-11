@@ -3,7 +3,7 @@
  */
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '../services/db'
+import { prisma } from '../services/db.js'
 
 interface VideoQuery {
   category?: string

@@ -5,9 +5,9 @@
 import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
-import { videoRoutes } from './routes/videos'
-import { prisma } from './services/db'
-import { initTelegramBot } from './services/telegramBot'
+import { videoRoutes } from './routes/videos.js'
+import { prisma } from './services/db.js'
+import { initTelegramBot } from './services/telegramBot.js'
 
 const fastify = Fastify({
   logger: true

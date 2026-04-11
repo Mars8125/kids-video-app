@@ -4,11 +4,11 @@
  */
 
 import TelegramBot from 'node-telegram-bot-api'
-import { parseVideoUrl } from './videoParser'
-import { fetchBilibiliMetadata } from './metadataFetcher'
-import { fetchDouyinMetadata } from './douyinFetcher'
-import { categorizeByTitle } from './categorizer'
-import { prisma } from './db'
+import { parseVideoUrl } from './videoParser.js'
+import { fetchBilibiliMetadata } from './metadataFetcher.js'
+import { fetchDouyinMetadata } from './douyinFetcher.js'
+import { categorizeByTitle } from './categorizer.js'
+import { prisma } from './db.js'
 
 let bot: TelegramBot | null = null
 
