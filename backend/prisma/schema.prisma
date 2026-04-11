@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Video {
+  id          String   @id @default(cuid())
+  platform    String   // bilibili | douyin | videoweixin
+  videoId     String   // 平台原始ID
+  title       String
+  coverUrl    String
+  videoUrl    String   // 嵌入播放URL
+  sourceUrl   String   // 原始分享链接
+  category    String   @default("其他")
+  duration   Int?     // 视频时长(秒)
+  description String?
+  viewCount   Int      @default(0)
+  likeCount   Int      @default(0)
+  status      String   @default("active") // active | disabled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([platform, videoId])
+  @@index([category])
+  @@index([status])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  keywords    String[] // 关键词列表
+  icon        String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+}
