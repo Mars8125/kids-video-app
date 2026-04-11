@@ -37,7 +37,6 @@ export async function videoRoutes(fastify: FastifyInstance) {
           videoUrl: true,
           category: true,
           duration: true,
-          author: true,
           likeCount: true,
           createdAt: true
         }
