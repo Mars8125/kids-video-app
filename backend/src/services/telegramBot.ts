@@ -22,7 +22,7 @@ export async function initTelegramBot(token: string, webhookUrl: string) {
 
   // 先清理旧 webhook（Railway 部署时会短暂新旧容器共存，避免 409）
   try {
-    await bot.deleteWebHook({ drop_pending_updates: true })
+    await bot.deleteWebHook()
     console.log('✅ 旧 webhook 已清理')
   } catch (e: any) {
     if (e.response?.body?.error_code !== 404) console.warn('清理 webhook 失败:', e.message)
@@ -31,8 +31,7 @@ export async function initTelegramBot(token: string, webhookUrl: string) {
   // 设置新 webhook
   await bot.setWebHook(webhookUrl, {
     allowed_updates: ['message', 'callback_query'],
-    drop_pending_updates: true,
-  })
+  } as any)
   console.log(`✅ Telegram Bot webhook 已设置: ${webhookUrl}`)
 
   bot.onText(/\/start/, async (msg) => {
