@@ -27,6 +27,20 @@ await fastify.register(cors, {
 await fastify.register(videoRoutes)
 
 // 健康检查
+// Telegram webhook 接收端
+fastify.post('/telegram-webhook', async (request, reply) => {
+  try {
+    const { initTelegramBot } = await import('./services/telegramBot.js')
+    const bot = await import('./services/telegramBot.js').then(m => m.getBot())
+    if (bot && request.body) {
+      bot.processUpdate(request.body as any)
+    }
+  } catch (e) {
+    console.error('Webhook 处理错误:', e)
+  }
+  return 'ok'
+})
+
 fastify.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() }
 })
@@ -395,10 +409,11 @@ const start = async () => {
     await fastify.listen({ port, host: '0.0.0.0' })
     console.log(`🚀 Server running on port ${port}`)
 
-    // 初始化 Telegram Bot
-    if (process.env.TELEGRAM_BOT_TOKEN) {
+    // 初始化 Telegram Bot (webhook 模式)
+    if (process.env.TELEGRAM_BOT_TOKEN && process.env.RAILWAY_PUBLIC_DOMAIN) {
+      const webhookUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/telegram-webhook`
       try {
-        await initTelegramBot(process.env.TELEGRAM_BOT_TOKEN)
+        await initTelegramBot(process.env.TELEGRAM_BOT_TOKEN, webhookUrl)
       } catch (error) {
         console.error('Telegram Bot 初始化失败:', error)
       }
