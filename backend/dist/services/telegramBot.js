@@ -19,7 +19,7 @@ export async function initTelegramBot(token, adminChatId) {
             `• 抖音: https://v.douyin.com/xxxxxx\n` +
             `• 微信视频号链接\n\n` +
             `命令:\n` +
-            `/list - 查看最近添加的视频\n` +
+            `/videos - 查看已添加的视频\n` +
             `/stats - 查看统计数据\n` +
             `/help - 显示帮助`);
     });
@@ -32,18 +32,24 @@ export async function initTelegramBot(token, adminChatId) {
             `• 可以一次发送多个链接\n` +
             `• 链接会自动识别平台`);
     });
+    bot.onText(/\/videos/, async (msg) => {
+        await handleListVideos(msg);
+    });
     bot.onText(/\/list/, async (msg) => {
+        await handleListVideos(msg);
+    });
+    async function handleListVideos(msg) {
         const videos = await prisma.video.findMany({
             orderBy: { createdAt: 'desc' },
-            take: 10
+            take: 20
         });
         if (videos.length === 0) {
-            await bot.sendMessage(msg.chat.id, '📭 还没有添加任何视频');
+            await bot.sendMessage(msg.chat.id, '📭 还没有添加任何视频，赶紧发个链接试试吧！');
             return;
         }
-        const text = videos.map((v, i) => `${i + 1}. [${v.platform}] ${v.title}\n   📁 ${v.category}`).join('\n\n');
-        await bot.sendMessage(msg.chat.id, `📋 最近添加的视频:\n\n${text}`, { parse_mode: 'HTML' });
-    });
+        const text = videos.map((v, i) => `${i + 1}. [${v.platform.toUpperCase()}] ${v.title}\n   📁 ${v.category}`).join('\n\n');
+        await bot.sendMessage(msg.chat.id, `📋 最近添加的视频 (共${videos.length}个):\n\n${text}`);
+    }
     bot.onText(/\/stats/, async (msg) => {
         const [total, bilibili, douyin, weixin] = await Promise.all([
             prisma.video.count({ where: { status: 'active' } }),
@@ -122,7 +128,7 @@ export async function initTelegramBot(token, adminChatId) {
             }
             // 删除处理中消息
             await bot.deleteMessage(chatId, processingMsg.message_id);
-            if (successCount > 0) {
+            if (successCount > 0 && adminChatId) {
                 await bot.sendMessage(adminChatId, `📱 App内容更新\n` +
                     `✅ 新增 ${successCount} 个视频\n` +
                     `❌ 失败 ${failCount} 个`);
