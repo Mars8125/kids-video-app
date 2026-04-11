@@ -2,7 +2,6 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy only backend files
 COPY backend/package*.json backend/tsconfig.json ./
 RUN npm ci
 
@@ -17,12 +16,17 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY backend/package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+# Copy prisma schema first (needed for postinstall)
+COPY backend/prisma ./prisma
 
+# Copy package files and install
+COPY backend/package*.json ./
+# Include devDependencies so prisma generate works
+RUN npm ci && npm cache clean --force
+
+# Copy built files
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY backend/prisma ./prisma
 
 ENV NODE_ENV=production
 ENV PORT=3000
