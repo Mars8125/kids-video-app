@@ -1,4 +1,4 @@
-FROM node:22-slim AS builder
+FROM node:22-bullseye AS builder
 
 WORKDIR /app
 
@@ -11,8 +11,8 @@ RUN npx prisma generate
 COPY backend/src ./src
 RUN npm run build
 
-# Production stage - Debian-based for Prisma compatibility
-FROM node:22-slim
+# Production stage - Debian 11 for Prisma OpenSSL 1.1 compatibility
+FROM node:22-bullseye
 
 WORKDIR /app
 
