@@ -1,9 +1,8 @@
-FROM node:22-alpine AS builder
+FROM node:22-bullseye AS builder
 
 WORKDIR /app
 
-# Force rebuild cache - v3
-ARG CACHE_BUST=3
+ARG CACHE_BUST=4
 
 # 配置国内 npm 镜像
 RUN npm config set registry https://registry.npmmirror.com
@@ -17,7 +16,7 @@ COPY . .
 RUN npx prisma generate && npm run build
 
 # Production stage
-FROM node:22-alpine
+FROM node:22-bullseye
 
 WORKDIR /app
 
@@ -35,6 +34,6 @@ COPY prisma ./prisma
 
 ENV NODE_ENV=production
 
-EXPOSE 3000
+EXPOSE 8080
 
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
