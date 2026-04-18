@@ -25,22 +25,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push to GHCR
+      - name: Build and Push to GHCR (no cache)
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
+          no-cache: true
           tags: |
             ghcr.io/mars8125/kids-video-app/kids-video-app:latest
             ghcr.io/mars8125/kids-video-app/kids-video-app:${{ github.sha }}
           build-args: |
             NPM_REGISTRY=https://registry.npmmirror.com
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Deploy to Railway
-        run: |
-          npm install -g @railway/cli
-          railway up --service kids-video-app
-        env:
-          RAILWAY_API_KEY: ${{ secrets.RAILWAY_TOKEN }}
