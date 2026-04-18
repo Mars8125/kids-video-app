@@ -34,9 +34,11 @@ export async function fetchBilibiliMetadata(bvid) {
             return null;
         }
         const videoData = data.data;
+        // B站返回的封面 URL 是 http://，需要转成 https:// 避免 Mixed Content 阻止
+        const coverUrl = videoData.pic.replace(/^http:/, 'https:');
         return {
             title: videoData.title,
-            coverUrl: videoData.pic,
+            coverUrl,
             description: videoData.desc,
             duration: videoData.duration,
             author: videoData.owner.name,

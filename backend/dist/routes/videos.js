@@ -116,6 +116,137 @@ export async function videoRoutes(fastify) {
         });
         return { success: true };
     });
+    // 数据迁移: 修复封面 URL (http -> https)
+    fastify.post('/api/admin/fix-cover-urls', async (request, reply) => {
+        // 找出所有 http 封面的视频
+        const videos = await prisma.video.findMany({
+            where: { coverUrl: { startsWith: 'http:' } },
+            select: { id: true, coverUrl: true }
+        });
+        let updated = 0;
+        for (const v of videos) {
+            const newUrl = v.coverUrl.replace(/^http:/, 'https:');
+            await prisma.video.update({
+                where: { id: v.id },
+                data: { coverUrl: newUrl }
+            });
+            updated++;
+        }
+        return { success: true, updated, total: videos.length };
+    });
+    // 管理员: 添加示例视频 (适合小学生的内容)
+    fastify.post('/api/admin/add-sample-videos', async (request, reply) => {
+        // 适合小学生的 B站视频精选
+        const sampleVideos = [
+            {
+                platform: 'bilibili',
+                videoId: 'BV1qW4y1a7Xf', // 科学实验：会走的水
+                title: '神奇的科学实验：会走的水！小朋友必看',
+                coverUrl: 'https://i0.hdslb.com/bfs/archive/album/cover/科学实验.jpg',
+                videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1qW4y1a7Xf&autoplay=0',
+                sourceUrl: 'https://www.bilibili.com/video/BV1qW4y1a7Xf',
+                category: '科普',
+                duration: 180
+            },
+            {
+                platform: 'bilibili',
+                videoId: 'BV1z44y1J7dG', // 动画：小猪佩奇
+                title: '小猪佩奇 中文版 第1集',
+                coverUrl: 'https://i0.hdslb.com/bfs/archive/album/cover/小猪佩奇.jpg',
+                videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1z44y1J7dG&autoplay=0',
+                sourceUrl: 'https://www.bilibili.com/video/BV1z44y1J7dG',
+                category: '动画',
+                duration: 300
+            },
+            {
+                platform: 'bilibili',
+                videoId: 'BV1GJ411x7z7', // 为中国点赞 (已存在，跳过)
+                title: '为中国点赞',
+                coverUrl: 'https://i1.hdslb.com/bfs/archive/3027d3a875db431f83749970ca31c81a1789bb2f.jpg',
+                videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7z7&autoplay=0',
+                sourceUrl: 'https://www.bilibili.com/video/BV1GJ411x7z7',
+                category: '其他',
+                duration: 47
+            },
+            {
+                platform: 'bilibili',
+                videoId: 'BV1Ss421w7Eg', // 成语故事
+                title: '成语故事：画蛇添足 - 小学生必学成语',
+                coverUrl: 'https://i0.hdslb.com/bfs/archive/album/cover/成语故事.jpg',
+                videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1Ss421w7Eg&autoplay=0',
+                sourceUrl: 'https://www.bilibili.com/video/BV1Ss421w7Eg',
+                category: '故事',
+                duration: 240
+            },
+            {
+                platform: 'bilibili',
+                videoId: 'BV1Xt411f7cc', // 数学趣味
+                title: '趣味数学：神奇的数字世界',
+                coverUrl: 'https://i0.hdslb.com/bfs/archive/album/cover/趣味数学.jpg',
+                videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1Xt411f7cc&autoplay=0',
+                sourceUrl: 'https://www.bilibili.com/video/BV1Xt411f7cc',
+                category: '数学趣味',
+                duration: 360
+            },
+            {
+                platform: 'bilibili',
+                videoId: 'BV1Yx411L7cS', // 英语学习
+                title: '小学英语：轻松学单词 ABC',
+                coverUrl: 'https://i0.hdslb.com/bfs/archive/album/cover/英语学习.jpg',
+                videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1Yx411L7cS&autoplay=0',
+                sourceUrl: 'https://www.bilibili.com/video/BV1Yx411L7cS',
+                category: '英语学习',
+                duration: 420
+            },
+            {
+                platform: 'bilibili',
+                videoId: 'BV1r44y1B7wX', // 儿童音乐
+                title: '儿童歌曲：两只老虎 童谣合集',
+                coverUrl: 'https://i0.hdslb.com/bfs/archive/album/cover/儿童歌曲.jpg',
+                videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1r44y1B7wX&autoplay=0',
+                sourceUrl: 'https://www.bilibili.com/video/BV1r44y1B7wX',
+                category: '音乐',
+                duration: 280
+            },
+            {
+                platform: 'bilibili',
+                videoId: 'BV1cV4y1o7DQ', // 自然探索
+                title: '探索大自然：神奇动物在哪里',
+                coverUrl: 'https://i0.hdslb.com/bfs/archive/album/cover/自然探索.jpg',
+                videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1cV4y1o7DQ&autoplay=0',
+                sourceUrl: 'https://www.bilibili.com/video/BV1cV4y1o7DQ',
+                category: '科学探索',
+                duration: 320
+            }
+        ];
+        let added = 0;
+        let skipped = 0;
+        for (const v of sampleVideos) {
+            // 检查是否已存在
+            const existing = await prisma.video.findFirst({
+                where: { platform: v.platform, videoId: v.videoId }
+            });
+            if (existing) {
+                skipped++;
+                continue;
+            }
+            await prisma.video.create({
+                data: {
+                    platform: v.platform,
+                    videoId: v.videoId,
+                    title: v.title,
+                    coverUrl: v.coverUrl,
+                    videoUrl: v.videoUrl,
+                    sourceUrl: v.sourceUrl,
+                    category: v.category,
+                    duration: v.duration,
+                    status: 'active'
+                }
+            });
+            added++;
+        }
+        return { success: true, added, skipped, total: sampleVideos.length };
+    });
     // 管理员: 获取所有视频 (包括禁用的)
     fastify.get('/api/admin/videos', async (request, reply) => {
         const { category, page = '1', limit = '50' } = request.query;

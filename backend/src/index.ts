@@ -353,7 +353,7 @@ fastify.get('/', async (request, reply) => {
 
       if (platform === 'bilibili') {
         // 从 URL 提取 BVID
-        const bvMatch = url.match(/[?&]bvid=([^&]+)/i) || url.match(/\/video\/(BV[\w]+)/i);
+        const bvMatch = url.match(/[?&]bvid=([^&]+)/i) || url.match(/\\/video\\/(BV[a-zA-Z0-9_]+)/i);
         const bvid = bvMatch ? bvMatch[1] : '';
         embedUrl = 'https://player.bilibili.com/player.html?bvid=' + bvid + '&autoplay=1&high_quality=1';
         openUrl = 'https://www.bilibili.com/video/' + bvid;
