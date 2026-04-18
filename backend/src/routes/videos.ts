@@ -145,13 +145,34 @@ export async function videoRoutes(fastify: FastifyInstance) {
   // 管理员: 删除视频
   fastify.delete('/api/admin/videos/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params
-    
+
     await prisma.video.update({
       where: { id },
       data: { status: 'disabled' }
     })
 
     return { success: true }
+  })
+
+  // 数据迁移: 修复封面 URL (http -> https)
+  fastify.post('/api/admin/fix-cover-urls', async (request, reply) => {
+    // 找出所有 http 封面的视频
+    const videos = await prisma.video.findMany({
+      where: { coverUrl: { startsWith: 'http:' } },
+      select: { id: true, coverUrl: true }
+    })
+
+    let updated = 0
+    for (const v of videos) {
+      const newUrl = v.coverUrl.replace(/^http:/, 'https:')
+      await prisma.video.update({
+        where: { id: v.id },
+        data: { coverUrl: newUrl }
+      })
+      updated++
+    }
+
+    return { success: true, updated, total: videos.length }
   })
 
   // 管理员: 获取所有视频 (包括禁用的)
