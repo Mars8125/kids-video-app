@@ -17,9 +17,11 @@ const fastify = Fastify({
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// CORS
+// CORS - 允许所有来源访问
 await fastify.register(cors, {
-  origin: true,
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 })
 
