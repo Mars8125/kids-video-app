@@ -40,7 +40,7 @@ jobs:
 
       - name: Deploy to Railway
         run: |
-          npm install -g railway
-          railway up --service kids-video-app --detach
+          npm install -g @railway/cli
+          railway up --service kids-video-app
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
