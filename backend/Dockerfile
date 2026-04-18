@@ -2,7 +2,7 @@ FROM node:22-bullseye AS builder
 
 WORKDIR /app
 
-ARG CACHE_BUST=4
+ARG CACHE_BUST=5
 
 # 配置国内 npm 镜像
 RUN npm config set registry https://registry.npmmirror.com
@@ -36,4 +36,4 @@ ENV NODE_ENV=production
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/index.js"]
