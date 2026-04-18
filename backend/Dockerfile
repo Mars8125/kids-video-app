@@ -2,6 +2,9 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# Force rebuild cache - v2
+ARG CACHE_BUST=2
+
 # Copy package files
 COPY package*.json ./
 RUN npm ci
