@@ -1,5 +1,5 @@
 /**
- * 主入口文件
+ * 主入口文件 - Railway deploy trigger v2
  */
 
 import 'dotenv/config'
