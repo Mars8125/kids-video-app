@@ -2,8 +2,11 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Force rebuild cache - v2
-ARG CACHE_BUST=2
+# Force rebuild cache - v3
+ARG CACHE_BUST=3
+
+# 配置国内 npm 镜像
+RUN npm config set registry https://registry.npmmirror.com
 
 # Copy package files
 COPY package*.json ./
@@ -17,6 +20,9 @@ RUN npx prisma generate && npm run build
 FROM node:22-alpine
 
 WORKDIR /app
+
+# 配置国内 npm 镜像
+RUN npm config set registry https://registry.npmmirror.com
 
 # Install production deps only
 COPY package*.json ./
