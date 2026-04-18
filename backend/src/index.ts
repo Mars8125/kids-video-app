@@ -315,17 +315,20 @@ fastify.get('/', async (request, reply) => {
           return;
         }
         
+        // category 可能是字符串或对象，统一处理
+        const getCategoryName = (v) => typeof v.category === 'string' ? v.category : v.category?.name;
+        
         const filtered = category === 'all' 
           ? allVideos 
-          : allVideos.filter(v => v.category?.name === category);
+          : allVideos.filter(v => getCategoryName(v) === category);
         
         list.innerHTML = filtered.map(v => \`
-          <div class="video-card" onclick="openPlayer('\${v.videoUrl}', '\${v.title}', '\${v.platform || ""}', '\${v.category?.name || ""}')">
+          <div class="video-card" onclick="openPlayer('\${v.videoUrl}', '\${v.title}', '\${v.platform || ""}', '\${getCategoryName(v) || ""}')">
             <img src="\${v.coverUrl}" alt="\${v.title}" onerror="this.style.display='none'">
             <div class="play-btn">▶</div>
             <div class="overlay">
               <div class="title">\${v.title}</div>
-              <div class="meta">\${v.platform || '未知'} · \${v.category?.name || '未分类'} · \${formatDate(v.createdAt)}</div>
+              <div class="meta">\${v.platform || '未知'} · \${getCategoryName(v) || '未分类'} · \${formatDate(v.createdAt)}</div>
             </div>
           </div>
         \`).join('');
