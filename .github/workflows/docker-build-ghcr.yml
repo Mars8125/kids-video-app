@@ -28,7 +28,7 @@ jobs:
       - name: Build and Push to GHCR
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./backend
           push: true
           tags: |
             ghcr.io/mars8125/kids-video-app/kids-video-app:latest
@@ -37,3 +37,10 @@ jobs:
             NPM_REGISTRY=https://registry.npmmirror.com
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Deploy to Railway
+        run: |
+          npm install -g railway
+          railway up --service kids-video-app --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
